@@ -63,6 +63,7 @@ pyinstaller --clean -F devices_inspection_win7.py --hidden-import=pandas --hidde
 输出独立的 devices_inspection_win7.exe 可在无 Python 环境的机器上运行。
 
 📂 项目根目录
+```python
 ├── devices_inspection_win7.py       # 主程序
 ├── requirements_win7.txt            # 所需依赖列表
 ├── info.xlsx                        # 设备与命令配置文件（支持加密）
@@ -71,7 +72,7 @@ pyinstaller --clean -F devices_inspection_win7.py --hidden-import=pandas --hidde
 │   ├── 01log.log                    # 主日志（记录异常和流程信息）
 │   └── YYYY.MM.DD/                 # 每次巡检按日期分目录保存
 │       └── <host>.log              # 每台设备的详细巡检日志
-
+```
 
 
 ## 以下为原readme.md
