@@ -1,5 +1,67 @@
 # 更新日志
 
+v2.0.0 (2025-06-23)
+✨ 新增功能：
+
+引入 concurrent.futures.ThreadPoolExecutor 替代手动信号量线程池，提升并发性能与可读性
+
+新增 DaemonThreadPoolExecutor 子类，确保所有工作线程为守护线程，主线程结束时自动清理子线程
+
+支持 info.xlsx 文件加密读取，自动提示用户输入密码，提供 3 次重试机会
+
+支持显示命令执行实时回显（可选）
+
+巡检命令执行逻辑增强：
+
+针对 sys / enable 等无回显命令自动使用 send_command_timing()
+
+自动判断回显是否为空或不生效，进行提示
+
+兼容 Windows 7 系统，提供一键打包脚本 packet_win7.bat，可直接生成可执行文件
+
+🧾 日志系统重构：
+
+使用 log_message() 函数统一控制台输出和日志写入
+
+日志分离策略：
+
+logs/01log.log：总览异常与流程
+
+logs/YYYY.MM.DD/host.log：每台设备独立日志
+
+添加异常分类处理，如 NetmikoTimeoutException、AuthenticationException、Enable失败 等均有明确日志标识
+
+🐛 问题修复：
+
+修复部分设备因缺失字段导致程序崩溃的问题（字段完整性校验）
+
+修复超时命令可能阻塞线程的问题，统一添加 timeout 限制
+
+修复重复日志写入问题，每次运行前自动清空旧日志
+
+🧹 优化改进：
+
+所有路径均通过 get_base_dir() 动态计算，兼容 .py 与 .exe 两种运行模式
+
+控制台输出加锁（threading.Lock）防止多线程输出混乱
+
+异常信息输出更具可读性，便于定位具体命令或设备问题
+
+补充大量注释，便于二次开发与维护
+
+v1.0.0
+📌 初始版本功能：
+
+基于 Netmiko 实现网络设备 SSH 巡检
+
+从 Excel 配置文件读取设备信息与命令
+
+支持日志输出至 logs/ 目录
+
+基础异常处理与线程支持（基于 threading.BoundedSemaphore）
+
+# 历史记录（老版本格式）
+
 ## 2025.03.17
 
 - 修改了读取info文件的代码逻辑。
