@@ -1,3 +1,73 @@
+📘 README.md
+
+# Devices Inspection Tool
+
+一个基于 Python 和 Netmiko 的网络设备自动巡检工具，支持 Excel 配置输入、SSH 并发连接、加密文件解析、命令回显处理与日志记录，适配 Win7/Win10 环境，支持 PyInstaller 一键打包为独立可执行程序。
+
+---
+
+## 🧩 功能特点
+
+- ✅ 支持 Excel 加密文件读取（基于 `msoffcrypto`）
+- ✅ 自动识别设备类型并执行对应命令
+- ✅ 并发线程池执行巡检任务，支持守护线程防止僵尸进程残留
+- ✅ 区分无回显命令（如 `sys`、`enable`），使用 `send_command_timing` 提升兼容性
+- ✅ 控制台与日志双输出，集中记录 `01log.log` 错误信息
+- ✅ 自动生成分设备日志：`logs/日期/host.log`
+- ✅ 支持 Windows 系统 PyInstaller 打包（内含打包脚本）
+
+---
+
+## 🛠 使用说明
+
+### 1. 准备环境
+
+建议使用 Python 3.10+，安装依赖：
+pip install -r requirements.txt
+
+2. 准备 info 文件
+准备 Excel 文件 info.xlsx，含两个 Sheet：
+
+Sheet1：设备信息（字段示例：device_type, host, ip, username, password, secret）
+
+Sheet2：巡检命令列表（以设备类型为列名）
+
+支持加密 Excel 文件，运行时将提示输入密码。
+
+3. 运行脚本
+
+python devices_inspection_win7.py
+程序将提示输入 info 文件名和是否显示实时命令回显，默认使用 info.xlsx 和不显示回显。
+
+4. 查看日志
+错误信息：logs/01log.log
+
+单设备日志：logs/2025.06.23/192.168.1.1.log（按日期存储）
+
+🧵 打包为 EXE（可选）
+确保已安装打包依赖：
+
+pip install -r requirements_win7.txt
+运行内置打包脚本：
+
+packet_win7.bat
+输出独立的 devices_inspection_win7.exe 可在无 Python 环境的机器上运行。
+
+📂 文件结构
+
+.
+├── devices_inspection_win7.py     # 主程序
+├── requirements_win7.txt               # 所需依赖
+├── info.xlsx                      # 设备与命令配置文件（支持加密）
+├── packet_win7.bat                # Windows 一键打包脚本
+├── logs/
+│   ├── 01log.log                  # 主日志
+│   └── YYYY.MM.DD/host.log        # 每台设备的详细日志
+└── 
+
+
+##以下为原readme
+
 # 简介
 
 - 作为网络工程师工作中经常遇到需要对网络设备进行巡检的情况，此前都是用SecureCRT软件开启记录Log Session，依次登录每台设备，依次输入命令收集巡检信息。
