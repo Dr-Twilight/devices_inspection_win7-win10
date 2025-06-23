@@ -26,7 +26,7 @@
 ```python
 pip install -r requirements.txt
 ```
-2. 准备 info 文件
+### 2. 准备 info 文件
 准备 Excel 文件 info.xlsx，含两个 Sheet：
 
 Sheet1：设备信息（字段示例：device_type, host, ip, username, password, secret）
@@ -35,13 +35,40 @@ Sheet2：巡检命令列表（以设备类型为列名）
 
 支持加密 Excel 文件，运行时将提示输入密码。
 
-3. 运行脚本
+📘 支持设备类型对照表（Netmiko）
+在 info.xlsx 中的 device_type 字段，请参考以下表格设置设备类型：
+
+| 品牌 / 设备                | device\_type 值      | 说明                    |
+| ---------------------- | ------------------- | --------------------- |
+| **Cisco IOS 路由器/交换机**  | `cisco_ios`         | 常用                    |
+| Cisco IOS-XE           | `cisco_xe`          | ISR4K / Catalyst 9000 |
+| Cisco ASA 防火墙          | `cisco_asa`         | 需启用 SSH               |
+| Cisco NX-OS            | `cisco_nxos`        | Nexus 系列              |
+| Cisco IOS-XR           | `cisco_xr`          | 高端路由器（如 ASR）          |
+| Cisco SG300            | `cisco_s300`        | Web 管理交换机             |
+| **华为 Huawei**          | `huawei`            | S/CE 系列，SSH 登录        |
+| **华三 H3C**             | `hp_comware`        | 推荐用于 Comware 系列       |
+| **Juniper**            | `juniper`           | JunOS 系统设备            |
+| **Arista EOS**         | `arista_eos`        | Arista 交换机            |
+| **Fortinet**           | `fortinet`          | FortiGate 防火墙         |
+| **HP ProCurve**        | `hp_procurve`       | 老款 HPE 网络设备           |
+| **Dell PowerConnect**  | `dell_powerconnect` | 接入层常用                 |
+| **Mikrotik RouterOS**  | `mikrotik_routeros` | SSH 接入                |
+| **F5 BIG-IP**          | `f5_ltm`            | 需启用 SSH               |
+| **Checkpoint Gaia**    | `checkpoint_gaia`   | 防火墙系统                 |
+| **Palo Alto PAN-OS**   | `paloalto_panos`    | 防火墙设备                 |
+| **Brocade / Ruckus**   | `brocade_fastiron`  | ICX 系列交换机             |
+| **Ciena SAOS**         | `ciena_saos`        | 光传输设备                 |
+| **Ubiquiti EdgeOS**    | `ubiquiti_edge`     | EdgeRouter 路由器        |
+| **Alcatel OmniSwitch** | `alcatel_aos`       | AOS 系统设备              |
+
+### 3. 运行脚本
 ```python
 python devices_inspection_win7.py
 ```
 程序将提示输入 info 文件名和是否显示实时命令回显，默认使用 info.xlsx 和不显示回显。
 
-4. 查看日志
+### 4. 查看日志
 错误信息：logs/01log.log
 
 单设备日志：logs/2025.06.23/192.168.1.1.log（按日期存储）
@@ -73,6 +100,8 @@ pyinstaller --clean -F devices_inspection_win7.py --hidden-import=pandas --hidde
 │   └── YYYY.MM.DD/                 # 每次巡检按日期分目录保存
 │       └── <host>.log              # 每台设备的详细巡检日志
 ```
+
+
 🧾 致谢与协议
 本项目基于：
 
