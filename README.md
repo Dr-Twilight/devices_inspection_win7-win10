@@ -48,7 +48,6 @@ python devices_inspection_win7.py
 
 🧵 打包为 EXE（可选）
 确保已安装打包依赖：
-🧰 依赖安装（requirements_win7.txt）
 请确保使用 Python 3.8–3.11 环境，并安装以下依赖：
 ```python
 pip install -r requirements_win7.txt
@@ -65,7 +64,6 @@ pyinstaller --clean -F devices_inspection_win7.py --hidden-import=pandas --hidde
 
 📂 文件结构
 
-.
 ├── devices_inspection_win7.py     # 主程序
 ├── requirements_win7.txt               # 所需依赖
 ├── info.xlsx                      # 设备与命令配置文件（支持加密）
@@ -76,7 +74,7 @@ pyinstaller --clean -F devices_inspection_win7.py --hidden-import=pandas --hidde
 └── 
 
 
-##以下为原readme
+## 以下为原readme.md
 
 # 简介
 
