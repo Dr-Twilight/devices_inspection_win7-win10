@@ -73,9 +73,18 @@ pyinstaller --clean -F devices_inspection_win7.py --hidden-import=pandas --hidde
 │   └── YYYY.MM.DD/                 # 每次巡检按日期分目录保存
 │       └── <host>.log              # 每台设备的详细巡检日志
 ```
+🧾 致谢与协议
+本项目基于：
+
+原始项目：@icefire-ken
+
+原项目协议：MIT License（见 LICENSE）
+
+在原有基础上进行增强与扩展，感谢原作者的高质量开源贡献 🙏
 
 
 ## 以下为原readme.md
+
 
 # 简介
 
