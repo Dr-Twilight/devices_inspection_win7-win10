@@ -23,8 +23,9 @@
 ### 1. 准备环境
 
 建议使用 Python 3.10+，安装依赖：
+```python
 pip install -r requirements.txt
-
+```
 2. 准备 info 文件
 准备 Excel 文件 info.xlsx，含两个 Sheet：
 
@@ -35,8 +36,9 @@ Sheet2：巡检命令列表（以设备类型为列名）
 支持加密 Excel 文件，运行时将提示输入密码。
 
 3. 运行脚本
-
+```python
 python devices_inspection_win7.py
+```
 程序将提示输入 info 文件名和是否显示实时命令回显，默认使用 info.xlsx 和不显示回显。
 
 4. 查看日志
@@ -46,11 +48,17 @@ python devices_inspection_win7.py
 
 🧵 打包为 EXE（可选）
 确保已安装打包依赖：
-
+```python
 pip install -r requirements_win7.txt
+```
 运行内置打包脚本：
-
+```python
 packet_win7.bat
+```
+打包命令：
+```python
+pyinstaller --clean -F devices_inspection_win7.py --hidden-import=pandas --hidden-import=openpyxl --hidden-import=netmiko --hidden-import=paramiko --hidden-import=cryptography --hidden-import=cryptography.hazmat.bindings._rust --hidden-import=bcrypt --hidden-import=msoffcrypto.tool --hidden-import=idna --hidden-import=encodings.idna
+```
 输出独立的 devices_inspection_win7.exe 可在无 Python 环境的机器上运行。
 
 📂 文件结构
