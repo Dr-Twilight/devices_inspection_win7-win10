@@ -24,7 +24,7 @@
 
 建议使用 Python 3.10+，安装依赖：
 ```python
-pip install -r requirements.txt
+pip install -r requirements_win7.txt
 ```
 ### 2. 准备 info 文件
 准备 Excel 文件 info.xlsx，含两个 Sheet：
