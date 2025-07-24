@@ -10,6 +10,7 @@ import time
 import getpass
 import threading
 from io import BytesIO
+import logging  # 引入日志模块
 
 # ==============================================
 # 第三方库导入区
@@ -46,6 +47,9 @@ class PasswordRequiredError(Exception):
 # 获取用户输入的info文件名（默认为info.xlsx）
 FILENAME = input(f"\n请输入info文件名（默认为 info.xlsx）：") or "info.xlsx"
 
+INSPECTION_TASK_TIMEOUT = 200   # 每台设备最大巡检总时长（秒）
+INSPECTION_CMD_TIMEOUT = 10     # 单条命令最大超时（秒）
+
 # ==============================================
 # 路径与日志配置模块
 # ==============================================
@@ -73,6 +77,8 @@ INFO_PATH = os.path.join(SCRIPT_DIR, FILENAME)  # 拼接info文件完整路径
 RUN_START_TIME = time.localtime()  # 程序启动时的本地时间
 LOCAL_TIME = time.strftime('%Y.%m.%d', RUN_START_TIME)  # 格式化日期（用于日志命名）
 
+
+
 # 线程安全配置
 LOCK = threading.Lock()  # 全局线程锁，防止多线程输出混乱
 
@@ -81,11 +87,21 @@ LOCK = threading.Lock()  # 全局线程锁，防止多线程输出混乱
 # 日志处理函数
 # ==============================================
 # 统一日志记录函数（同时输出到控制台和01log.log）
+# 日志配置
+LOG_FILE = os.path.join(LOG_DIR, '01log.log')
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    handlers=[
+        logging.FileHandler(LOG_FILE, encoding='utf-8'),
+        logging.StreamHandler()
+    ]
+)
+
+# 兼容原有 log_message 调用方式
 def log_message(msg: str):
     with LOCK:
-        print(msg)  # 输出到控制台
-        with open(os.path.join(LOG_DIR, '01log.log'), 'a', encoding='utf-8') as log_file:
-            log_file.write(msg + '\n')  # 写入日志文件
+        logging.info(msg)
 
 # 定义日志路径
 LOG_DATE_DIR = os.path.join(LOG_DIR, LOCAL_TIME)  # logs/2025.06.09/
@@ -197,6 +213,7 @@ def read_unencrypted_file(info_file: str) -> pd.DataFrame:
 def inspection(login_info, cmds_dict, show_output):
     # 使用传入的设备登录信息和巡检命令登录设备并执行巡检
     # 若登录异常，生成01log文件记录错误信息
+    start_time = time.time()  # 子线程执行计时起始点，用于计算执行耗时
     t11 = time.time()  # 子线程执行计时起始点，用于计算执行耗时
     ssh = None         # 初始化SSH连接对象
 
@@ -269,13 +286,22 @@ def inspection(login_info, cmds_dict, show_output):
 
         # 遍历当前设备类型对应的所有巡检命令
         for cmd in cmds_dict[login_info['device_type']]:
+            elapsed = time.time() - t11  #计算当前命令执行耗时
+            remaining = INSPECTION_TASK_TIMEOUT - elapsed  #计算剩余时间
+            # ---------- 新增超时检查 -----------
+            if remaining <= 0:
+                log_message(f'设备 {login_info["host"]} 巡检任务超时，已主动中止')
+                return
+            # 计算当前命令的超时时间（取剩余时间和单条命令最大超时的较小值）
+            timeout_per_cmd = min(INSPECTION_CMD_TIMEOUT, remaining)
+            # ---------- 原有命令执行逻辑 ----------
             if isinstance(cmd, str):  # 仅处理字符串类型的命令（排除可能的复合指令）
                 show = "命令执行前初始化失败"  # 初始化变量，确保所有路径都有定义
                 try:
                     # 对无回显命令使用send_command_timing（兼容无输出场景）
                     if cmd.strip().lower() in NO_OUTPUT_CMDS:
-                        # 添加超时参数，单位为秒（修正参数名 timeout → read_timeout）
-                        show = ssh.send_command_timing(cmd, read_timeout=15)
+                        # 添加超时参数，单位为秒（时间为超时时间）
+                        show = ssh.send_command_timing(cmd, read_timeout=timeout_per_cmd)
                         # 处理回显中包含的错误信息
                         # 处理无输出情况
                         if show.strip() == "":
@@ -283,8 +309,8 @@ def inspection(login_info, cmds_dict, show_output):
                         elif show.strip() == cmd:
                             show = f"命令 {cmd} 已发送，但可能无回显或未生效。"
                     else:
-                        # 常规命令使用send_command（设置30秒读取超时）
-                        show = ssh.send_command(cmd, read_timeout=30)
+                        #添加超时参数，单位为秒（时间为超时时间）
+                        show = ssh.send_command(cmd, read_timeout=timeout_per_cmd)
 
                 except exceptions.ReadTimeout as e:
                     # 处理命令执行超时异常
@@ -403,13 +429,11 @@ if __name__ == '__main__':
         # 处理所有任务结果
         for future, host in futures:
             try:
-                # 获取任务结果，设置超时时间为300秒（5分钟）
-                # 防止单个设备巡检耗时过长阻塞整体流程
-                future.result(timeout=300)
-            # 处理任务超时异常
+                # 获取任务结果，设置超时时间为INSPECTION_TASK_TIMEOUT秒+几秒冗余（如+5），避免边界误判
+                future.result(timeout=INSPECTION_TASK_TIMEOUT+5)
             except FutureTimeout:
-                log_message(f"设备 {host} 巡检任务超时（>300秒），已强制终止")
-            # 处理其他任务执行异常
+                # 理论上inspection内已经做了超时自我终止
+                log_message(f"设备 {host} 巡检任务超时（>{INSPECTION_TASK_TIMEOUT}秒），请检查inspection函数内部超时控制是否生效")
             except Exception as e:
                 log_message(f"设备 {host} 巡检任务异常: {str(e)}")
 
@@ -429,9 +453,7 @@ if __name__ == '__main__':
 
     #主线程计时器t2,计算巡检总耗时
     t2 = time.time()
-    print(f'\n' + '<' * 40 + '\n')
-    print(f'巡检完成，共巡检 {len(futures)} 台设备，{file_lines} 台异常，共用时 {round(t2 - t1, 1)} 秒。\n')
-    input('输入Enter退出！')
-    # 任务提交完成后
-    executor.shutdown(wait=True)
+    log_message(f'\n' + '<' * 40 + '\n')
+    log_message(f'巡检完成，共巡检 {len(futures)} 台设备，{file_lines} 台异常，共用时 {round(t2 - t1, 1)} 秒。\n')
     log_message(f"线程池已关闭，所有任务已完成")
+    input('输入Enter退出！')
